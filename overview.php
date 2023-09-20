@@ -200,16 +200,40 @@
 											<!--end::Row-->
 											<!--begin::Input group-->
 											
+											<?php
+											include ("admin/config/dbcon2.php");
+
+											$sql = "SELECT * FROM schools";
+											$sql2 = mysqli_query($conn, $sql);
 											
+
+											?>
 											<div class="row mb-7">
 											<div class="col-md-5 fv-row">
 											<label class="col-lg-4 fw-bold text-muted"><h5>School ID</h5></label>
-                                				<input class="form-control form-control-solid" size="5" type="text" class="form-control" name="school_id">
-                            				</div>
-											<div class="col-md-7 fv-row">
-											<label class="col-lg-4 fw-bold text-muted"><h5>School Name</h5></label>
-                                				<input class="form-control form-control-solid" size="5" type="text" class="form-control" name="school_name">
-                            				</div>
+                                				<!-- <input class="form-control form-control-solid" size="5" type="text" class="form-control" name="school_id"> -->
+												<select class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Select ID" id = "school_id" name="school_id" class="form-control">
+													<option value="">Select School ID</option>
+													<?php
+													if(mysqli_num_rows($sql2)>0){
+
+														foreach($sql2 as $row){
+
+												
+
+													?>
+													<option value="<?=$row['school_id']?>"><?=$row['school_id']?></option>
+													<?php
+																			}
+																				}
+													?>
+												</select>
+											</div>
+											</div>
+												<div class="col-md-7 fv-row">
+													<label class="col-lg-4 fw-bold text-muted"><h5>School Name</h5></label>
+													<input class="form-control form-control-solid" size="5" type="text" class="form-control" name="school_name" id="school_name" readonly>
+												</div>
 											</div>
 											<div class="row mb-7">
 											<div class="col-md-5 fv-row">
@@ -280,10 +304,9 @@
 													</select>
                             				</div>
 											<div class="col-md-7 fv-row">
-												<label class="col-lg-5 fw-bold text-muted"><h5>District</h5></label>
-												<select class="form-select form-select-solid" id="district" data-control="select2" data-hide-search="true" data-placeholder="Select Category" name="District" class="form-control">
-												</select>
-											</div>
+													<label class="col-lg-4 fw-bold text-muted"><h5>District</h5></label>
+													<input class="form-control form-control-solid" size="5" type="text" class="form-control" name="district" id="district" readonly>
+												</div>
 											</div>
 											<!--begin::Actions-->
 											<div class="text-center">
@@ -497,3 +520,32 @@
 <?php
 include('admin/includes/script.php');
 ?>
+<!-- ############### SELECT OPTIONS FOR SCHOOL NAME AND DISTRICT ##################    -->
+<script>
+    $(document).ready(function() {
+    $('#school_id').change(function() {
+        var selectedValue = $('#school_id').val(); // Use the correct way to get the selected value
+
+        $.ajax({
+            type: 'post',
+            url: 'searchid.php',
+            dataType: 'JSON',
+            data: {
+                'school_id': selectedValue
+            },
+            success: function(data) {
+                if (data) {
+                    // Update both school_name and district fields
+                    $('#school_name').val(data.name);
+                    $('#district').val(data.district);
+                } else {
+                    // Handle case when data is not found
+                    $('#school_name').val('');
+                    $('#district').val('');
+                }
+            }
+        });
+    });
+});
+
+</script>

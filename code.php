@@ -28,54 +28,68 @@ function getSchoolInfo($school_id) {
 ?>
 <?php
 
-include ('admin/includes/script.php');
-include ('admin/config/dbcon.php');
-//school information//
-if(isset($_POST['submit_sh_info'])){
+include('admin/includes/script.php');
+include('admin/config/dbcon.php');
+
+// school information //
+if (isset($_POST['submit_sh_info'])) {
 
     $Municipality = $_POST['Municipality'];
-    $District = $_POST['District'];  
+    $District = $_POST['district'];
     $school_logo = $_POST['school_logo'];
     $school_header = $_POST['school_header'];
     $about_us = $_POST['about_us'];
     $school_id = $_POST['school_id'];
     $school_name = $_POST['school_name'];
-    $school_address = $_POST['school_address']; 
+    $school_address = $_POST['school_address'];
     $school_type = $_POST['school_type'];
     $school_number = $_POST['school_number'];
     $category = $_POST['category'];
     $school_email = $_POST['school_email'];
     $sbm_level = $_POST['sbm'];
-    
+
+    // Ask the user if they want to continue
+    echo '<script type="text/javascript">';
+    echo 'var confirmed = confirm("Do you want to save this information?");';
+    echo 'if (confirmed) {';
+
     $sql = "INSERT INTO school_profile (school_id, school_name, school_address, about_school, school_type, contact_number, school_email_address, school_logo, school_header, Municipality, District, sbm_level, category) 
-    VALUES ('$school_id', '$school_name', '$school_address', '$about_us', '$school_type', '$school_number', '$school_email', '$school_logo', '$school_header', '$Municipality', '$District', '$sbm_level', '$category')";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    // Use prepared statements to avoid SQL injection
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "sssssssssssss", $school_id, $school_name, $school_address, $about_us, $school_type, $school_number, $school_email, $school_logo, $school_header, $Municipality, $District, $sbm_level, $category);
+    $sql_run = mysqli_stmt_execute($stmt);
 
-        $sql_run = mysqli_query($conn, $sql);
-
-
-
-        if($sql_run){
-               
-            $_SESSION['success'] = "School Information Added";
-            echo '<script type="text/javascript">';
-            echo 'Swal.fire({
-                    icon: "success",
-                    title: "Success!",
-                    text: "School Information Added Successfully",
-                    showConfirmButton: false,
-                    timer: 5000
-                  }).then(function() {
-                    window.location.href = "overview.php";
-                  });';
-            echo '</script>';
-        } else {
-            $_SESSION['success'] = "School Information Not Added";
-            header('Location: overview.php');
-        }
-      //  $conn->close();
+    if ($sql_run) {
+        echo 'Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: "School Information Added Successfully",
+                showConfirmButton: false,
+                timer: 5000
+              }).then(function() {
+                window.location.href = "overview.php";
+              });';
+    } else {
+        echo 'Swal.fire({
+                icon: "error",
+                title: "Error!",
+                text: "School Information Not Added",
+                showConfirmButton: false,
+                timer: 5000
+              }).then(function() {
+                window.location.href = "overview.php";
+              });';
     }
 
+    echo '} else {';
+    echo '  // User chose not to proceed, you can add any logic here if needed';
+    echo '}';
+    echo '</script>';
+}
 ?>
+
 <?php
 include ('admin/config/dbcon.php');
 
@@ -126,8 +140,8 @@ if (isset($_POST['update_pf'])) {
 
 
 
-<?php
-if (isset($_GET['municipality'])) {
+<!-- <?php
+//if (isset($_GET['municipality'])) {
     $municipality = $_GET['municipality'];
 
     // Simulated data, you can replace this with your actual data source
@@ -141,5 +155,5 @@ if (isset($_GET['municipality'])) {
     foreach ($districtOptions as $district) {
         echo "<option value='$district'>$district</option>";
     }
-}
-?>
+//}
+?> -->

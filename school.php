@@ -527,49 +527,51 @@
 				Key Performance Indicator
 		<div class="row g-2 mb-2">
 		<div class="col-md-6 fv-row">
-			<div class="card card-success">
-    			<div class="card-header">
-        			<h3 class="card-title">Enrollment by Sex</h3>
-        		<div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                <i class="fas fa-minus"></i>
-            </button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                <i class="fas fa-times"></i>
-            </button>
+    <div class="card card-success">
+        <div class="card-header">
+            <h3 class="card-title">Enrollment Per Year By Sex</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-    </div>
-    <div class="card-body">
-        <div class="chart">
-            <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        <div class="card-body">
+            <div class="chart">
+                <canvas id="enrolleeBarChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
         </div>
+        <!-- /.card-body -->
     </div>
-    <!-- /.card-body -->
-</div>
-<!-- /.card -->
+    <!-- /.card -->
 </div>
 <div class="col-md-6 fv-row">
-			<div class="card card-success">
-    			<div class="card-header">
-        			<h3 class="card-title">Enrollment Per Year</h3>
-        		<div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                <i class="fas fa-minus"></i>
-            </button>
-            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                <i class="fas fa-times"></i>
-            </button>
+    <div class="card card-success">
+        <div class="card-header">
+            <h3 class="card-title">Enrollment Per Year By Grade Level</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-    </div>
-    <div class="card-body">
-        <div class="chart">
-            <canvas id="barChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        <div class="card-body">
+            <div class="chart">
+                <canvas id="enrolleeBarChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
         </div>
+        <!-- /.card-body -->
     </div>
-    <!-- /.card-body -->
+    <!-- /.card -->
 </div>
-<!-- /.card -->
 </div>
+    
 </div>
 
 <?php
@@ -577,13 +579,23 @@ include('admin/config/dbcon.php');
 
 $selectedSchoolId = $_GET['school_id']; // You should sanitize and validate this input
 
-$sql = "SELECT year, SUM(enrolee) AS total_enrollees FROM school_enrol WHERE school_id = $selectedSchoolId GROUP BY year";
+$sql = "SELECT year, 
+               SUM(CASE WHEN sex = 'Male' THEN 1 ELSE 0 END) AS male_enrollees,
+               SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END) AS female_enrollees
+        FROM school_enrol 
+        WHERE school_id = $selectedSchoolId 
+        GROUP BY year";
+
 $result = $conn->query($sql);
 
 $enrollData = [];
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $enrollData[] = ['year' => $row['year'], 'enrollees' => $row['total_enrollees']];
+        $enrollData[] = [
+            'year' => $row['year'],
+            'male_enrollees' => $row['male_enrollees'],
+            'female_enrollees' => $row['female_enrollees']
+        ];
     }
 }
 ?>
@@ -594,25 +606,35 @@ if ($result->num_rows > 0) {
 // Replace this with your database fetching code or API call
 var enrollData = <?php echo json_encode($enrollData); ?>;
 
-// Extract years and enrollees for the chart
+// Extract years and male/female enrollees for the chart
 var years = enrollData.map(function(data) {
     return data.year;
 });
-var enrollees = enrollData.map(function(data) {
-    return data.enrollees;
+var maleEnrollees = enrollData.map(function(data) {
+    return data.male_enrollees;
+});
+var femaleEnrollees = enrollData.map(function(data) {
+    return data.female_enrollees;
 });
 
 // Chart.js configuration
-var ctx = document.getElementById('barChart2').getContext('2d');
+var ctx = document.getElementById('enrolleeBarChart').getContext('2d');
 var barChart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: years,
-        datasets: [{
-            label: 'Enrollees',
-            data: enrollees,
-            backgroundColor: 'rgba(0, 128, 255, 0.6)'
-        }]
+        datasets: [
+            {
+                label: 'Male Enrollees',
+                data: maleEnrollees,
+                backgroundColor: 'rgba(0, 128, 255, 0.6)'
+            },
+            {
+                label: 'Female Enrollees',
+                data: femaleEnrollees,
+                backgroundColor: 'rgba(255, 0, 0, 0.6)'
+            }
+        ]
     },
     options: {
         responsive: true,
@@ -625,75 +647,78 @@ var barChart = new Chart(ctx, {
 });
 </script>
 
+
 <?php
 include('admin/config/dbcon.php');
 
 $selectedSchoolId = $_GET['school_id']; // You should sanitize and validate this input
 
-$query = "SELECT COUNT(*) AS count, sex, year FROM school_enrol WHERE school_id = ? GROUP BY sex, year";
-$stmt = $conn->prepare($query);
+$sql = "SELECT year, grade_level, COUNT(enrolee) AS total_enrollees
+        FROM school_enrol 
+        WHERE school_id = $selectedSchoolId 
+        GROUP BY year, grade_level";
 
-// Bind the parameter using bind_param() method
-$stmt->bind_param("i", $selectedSchoolId);
+$result = $conn->query($sql);
 
-$stmt->execute();
-$result = $stmt->get_result();
-$data = $result->fetch_all(MYSQLI_ASSOC);
-$stmt->close(); // Close the statement after use
-
+$enrollDataByGrade = [];
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $enrollDataByGrade[] = [
+            'year' => $row['year'],
+            'grade_level' => $row['grade_level'],
+            'total_enrollees' => $row['total_enrollees']
+        ];
+    }
+}
 ?>
 
+<!-- Include your HTML and other code here -->
+
 <script>
-        var data = <?php echo json_encode($data); ?>;
-        console.log(data);
-        var years = [];
-        var maleCounts = [];
-        var femaleCounts = [];
+// Replace this with your database fetching code or API call
+var enrollDataByGrade = <?php echo json_encode($enrollDataByGrade); ?>;
 
-        data.forEach(function(item) {
-            var yearIndex = years.indexOf(item.year);
+// Extract years, grade levels, and total enrollees for the chart
+var yearsByGrade = enrollDataByGrade.map(function(data) {
+    return data.year;
+});
+var gradeLevels = [...new Set(enrollDataByGrade.map(data => data.grade_level))]; // Get unique grade levels
+var totalEnrolleesByGrade = gradeLevels.map(function(grade) {
+    return {
+        label: grade,
+        data: enrollDataByGrade.filter(data => data.grade_level === grade).map(data => data.total_enrollees),
+        backgroundColor: getRandomColor(), // Function to generate random colors
+    };
+});
 
-            if (yearIndex === -1) {
-                years.push(item.year);
-                maleCounts.push(item.sex === 'Male' ? item.count : 0);
-                femaleCounts.push(item.sex === 'Female' ? item.count : 0);
-            } else {
-                if (item.sex === 'Male') {
-                    maleCounts[yearIndex] = item.count;
-                } else if (item.sex === 'Female') {
-                    femaleCounts[yearIndex] = item.count;
-                }
+// Function to generate random colors
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+// Chart.js configuration for the bar chart
+var ctx = document.getElementById('enrolleeBarChart2').getContext('2d');
+var barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: yearsByGrade,
+        datasets: totalEnrolleesByGrade
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
             }
-        });
-
-        var ctx = document.getElementById('barChart').getContext('2d');
-        var enrollmentChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: years,
-                datasets: [{
-                    label: 'Male',
-                    data: maleCounts,
-                    backgroundColor: 'blue'
-                }, {
-                    label: 'Female',
-                    data: femaleCounts,
-                    backgroundColor: 'pink'
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
-    </script>
-
+        }
+    }
+});
+</script>
 
         </div>
     </div>

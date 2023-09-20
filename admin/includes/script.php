@@ -81,7 +81,7 @@
     // Call the function to fetch enrollee data for the specific school ID and create the chart
     fetchEnrolleeData(schoolId);
 </script>
-<script>
+<!-- <script>
         $(document).ready(function() {
             $("#municipality").change(function() {
                 var selectedMunicipality = $(this).val();
@@ -95,7 +95,7 @@
                 });
             });
         });
-    </script>
+    </script> -->
 
 <script>
 $(document).ready(function() {
