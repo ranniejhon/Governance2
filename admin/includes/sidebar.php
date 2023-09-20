@@ -18,8 +18,8 @@
 
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="view.php">View School Profile</a>
-                                    <a class="nav-link" href=".html">Add School Profile</a>
+                                    <a class="nav-link" href="pages/view.php">View School Profile</a>
+                                    <a class="nav-link" href="pages/overview.html">Add School Profile</a>
                                 </nav>
                             </div>
 
