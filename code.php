@@ -27,17 +27,16 @@ function getSchoolInfo($school_id) {
 }
 ?>
 <?php
-
+// Include necessary files and connect to the database
 include('admin/includes/script.php');
 include('admin/config/dbcon.php');
 
-// school information //
+// Check if the form has been submitted
 if (isset($_POST['submit_sh_info'])) {
 
+    // Retrieve form data
     $Municipality = $_POST['Municipality'];
     $District = $_POST['district'];
-    $school_logo = $_POST['school_logo'];
-    $school_header = $_POST['school_header'];
     $about_us = $_POST['about_us'];
     $school_id = $_POST['school_id'];
     $school_name = $_POST['school_name'];
@@ -48,47 +47,97 @@ if (isset($_POST['submit_sh_info'])) {
     $school_email = $_POST['school_email'];
     $sbm_level = $_POST['sbm'];
 
-    // Ask the user if they want to continue
-    echo '<script type="text/javascript">';
-    echo 'var confirmed = confirm("Do you want to save this information?");';
-    echo 'if (confirmed) {';
+    // Check if files were uploaded successfully
+    if (isset($_FILES['school_logo']['tmp_name']) && isset($_FILES['school_header']['tmp_name'])) {
+        $uploadsDirectory = 'uploads/'; // Path to the folder where you want to save the images
 
-    $sql = "INSERT INTO school_profile (school_id, school_name, school_address, about_school, school_type, contact_number, school_email_address, school_logo, school_header, Municipality, District, sbm_level, category) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
-    // Use prepared statements to avoid SQL injection
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "sssssssssssss", $school_id, $school_name, $school_address, $about_us, $school_type, $school_number, $school_email, $school_logo, $school_header, $Municipality, $District, $sbm_level, $category);
-    $sql_run = mysqli_stmt_execute($stmt);
+        // Generate unique filenames for the uploaded files
+        $school_logo_filename = uniqid() . '_' . $_FILES['school_logo']['name'];
+        $school_header_filename = uniqid() . '_' . $_FILES['school_header']['name'];
 
-    if ($sql_run) {
-        echo 'Swal.fire({
-                icon: "success",
-                title: "Success!",
-                text: "School Information Added Successfully",
-                showConfirmButton: false,
-                timer: 5000
-              }).then(function() {
-                window.location.href = "overview.php";
-              });';
+        // Move the uploaded files to the desired folder
+        $school_logo_path = $uploadsDirectory . $school_logo_filename;
+        $school_header_path = $uploadsDirectory . $school_header_filename;
+
+        if (
+            move_uploaded_file($_FILES['school_logo']['tmp_name'], $school_logo_path) &&
+            move_uploaded_file($_FILES['school_header']['tmp_name'], $school_header_path)
+        ) {
+            // Files were successfully moved
+            // Insert data into the database including the file paths
+            $sql = "INSERT INTO school_profile (school_id, school_name, school_address, about_school, school_type, contact_number, school_email_address, school_logo, school_header, Municipality, District, sbm_level, category) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            // Use prepared statements to avoid SQL injection
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sssssssssssss",
+                $school_id,
+                $school_name,
+                $school_address,
+                $about_us,
+                $school_type,
+                $school_number,
+                $school_email,
+                $school_logo_path,
+                $school_header_path,
+                $Municipality,
+                $District,
+                $sbm_level,
+                $category
+            );
+
+            $sql_run = mysqli_stmt_execute($stmt);
+
+            if ($sql_run) {
+                echo 'Swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        text: "School Information Added Successfully",
+                        showConfirmButton: false,
+                        timer: 5000
+                      }).then(function() {
+                        window.location.href = "overview.php";
+                      });';
+            } else {
+                echo 'Swal.fire({
+                        icon: "error",
+                        title: "Error!",
+                        text: "School Information Not Added",
+                        showConfirmButton: false,
+                        timer: 5000
+                      }).then(function() {
+                        window.location.href = "overview.php";
+                      });';
+            }
+        } else {
+            // Handle file upload errors here
+            echo 'Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    text: "File Upload Failed",
+                    showConfirmButton: false,
+                    timer: 5000
+                  }).then(function() {
+                    window.location.href = "overview.php";
+                  });';
+        }
     } else {
+        // Handle the case where files were not properly uploaded
         echo 'Swal.fire({
                 icon: "error",
                 title: "Error!",
-                text: "School Information Not Added",
+                text: "File Upload Failed",
                 showConfirmButton: false,
                 timer: 5000
               }).then(function() {
                 window.location.href = "overview.php";
               });';
     }
-
-    echo '} else {';
-    echo '  // User chose not to proceed, you can add any logic here if needed';
-    echo '}';
-    echo '</script>';
 }
 ?>
+
 
 <?php
 include ('admin/config/dbcon.php');

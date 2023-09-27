@@ -3621,6 +3621,14 @@ textarea.form-control-lg {
   border-top-right-radius: 0;
 }
 
+.navigation-bar ul {
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+  float: left;
+  background: white;
+}
+
 .nav {
   --bs-nav-link-padding-x: 1rem;
   --bs-nav-link-padding-y: 0.5rem;
@@ -3633,6 +3641,7 @@ textarea.form-control-lg {
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
+
 }
 
 .nav-link {

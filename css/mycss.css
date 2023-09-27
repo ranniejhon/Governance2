@@ -1,0 +1,23 @@
+body {
+    background-color: #eee !important;
+}
+
+.form-control:focus {
+    color: #495057 !important;
+    background-color: #fff !important;
+    border-color: #80bdff !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0rem rgba(27, 30, 34, 0.25) !important
+}
+
+.btn-secondary:focus {
+    box-shadow: 0 0 0 0rem rgba(108, 117, 125, .5) !important
+}
+
+.close:focus {
+    box-shadow: 0 0 0 0rem rgba(108, 117, 125, .5) !important
+}
+
+.mt-200 {
+    margin-top: 200px !important
+}
