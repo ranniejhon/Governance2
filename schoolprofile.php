@@ -112,10 +112,14 @@ mysqli_close($conn);
                   <b>School ID:</b> <a class="float-right"><?php echo $school_id; ?></a>
                 </li>
 
-                <li class="list-group-item">
-                  <b>Email Address:</b> <a class="float-right"><?php echo $school_email_address; ?></a>
+               <li class="list-group-item">
+               <b>Email Address:</b> 
+    <a class="float-right" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-size: 14px;">
+        <?php echo $school_email_address; ?>
+    </a>
                 </li>
 
+    
                 <li class="list-group-item">
                   <b>District</b> <a class="float-right"><?php echo $district; ?></a>
                 </li>
